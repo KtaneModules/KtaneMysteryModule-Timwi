@@ -112,13 +112,13 @@ public class MysteryModuleScript : MonoBehaviour
 
     private IEnumerator Setup()
     {
-        
+
 
         // Find the Mystery Module Service and obtain the list of compatibilities
         var mmService = FindObjectOfType<MysteryModuleService>();
         if (mmService == null)
         {
-            Debug.LogFormat(@"[Mystery Module #{0}] Catastrophic problem: Mystery Module Service is not present.", moduleId);
+            Debug.LogFormat(@"[Mystery Module #{0}] Fatal problem: Mystery Module Service is not present.", moduleId);
             goto mustAutoSolve;
         }
 
@@ -217,7 +217,7 @@ public class MysteryModuleScript : MonoBehaviour
 
         MethodInfo mth;
         foreach (var component in mystifiedModule.gameObject.GetComponents<MonoBehaviour>())
-            if ((mth = component.GetType().GetMethod("MysteryModuleHiding", BindingFlags.Public | BindingFlags.Instance)) != null)
+            if (component != null && (mth = component.GetType().GetMethod("MysteryModuleHiding", BindingFlags.Public | BindingFlags.Instance)) != null)
             {
                 if (mth.GetParameters().Select(p => p.ParameterType).SequenceEqual(new[] { typeof(KMBombModule[]) }))
                     mth.Invoke(component, new object[] { keyModules.ToArray() });
@@ -240,7 +240,7 @@ public class MysteryModuleScript : MonoBehaviour
         }
         yield break;
 
-    mustAutoSolve:
+        mustAutoSolve:
         nextStage = true;
         SetLED(0, 255, 0);
         setScreen("Free solve :D", 0, 255, 0);
@@ -306,7 +306,7 @@ public class MysteryModuleScript : MonoBehaviour
         {
             if (Bomb.GetSolvedModuleIDs().Contains(keyModules[0].ModuleType))
             {
-                SetLED(red ? (byte)255 : (byte)0, red ? (byte)0 : (byte)255, 0);
+                SetLED(red ? (byte) 255 : (byte) 0, red ? (byte) 0 : (byte) 255, 0);
                 red = !red;
                 nextStage = true;
             }
