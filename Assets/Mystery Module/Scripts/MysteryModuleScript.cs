@@ -33,6 +33,8 @@ public class MysteryModuleScript : MonoBehaviour
 
     private List<KMBombModule> keyModules;
     private KMBombModule mystifiedModule;
+    private List<Light> mystifiedLights = new List<Light>();
+    private List<float> mystifiedLightRanges = new List<float>();
 
     private static int moduleIdCounter = 1;
     private int moduleId;
@@ -112,8 +114,6 @@ public class MysteryModuleScript : MonoBehaviour
 
     private IEnumerator Setup()
     {
-
-
         // Find the Mystery Module Service and obtain the list of compatibilities
         var mmService = FindObjectOfType<MysteryModuleService>();
         if (mmService == null)
@@ -228,6 +228,13 @@ public class MysteryModuleScript : MonoBehaviour
         mystifyScale = mystifiedModule.transform.localScale;
         mystifiedModule.transform.localScale = new Vector3(0, 0, 0);
 
+        foreach (var light in mystifiedModule.gameObject.GetComponentsInChildren<Light>())
+        {
+            mystifiedLights.Add(light);
+            mystifiedLightRanges.Add(light.range);
+            light.range = 0;
+        }
+
         foreach (var org in organizationModules)
         {
             mth = org.GetType().GetMethod("MysteryModuleNotification", BindingFlags.Public | BindingFlags.Instance);
@@ -283,9 +290,16 @@ public class MysteryModuleScript : MonoBehaviour
                 mystifiedModule.transform.localScale = Vector3.Lerp(new Vector3(0, 0, 0), mystifyScale, elapsed / duration);
                 PivotRight.transform.localEulerAngles = new Vector3(0, 0, -90 * elapsed / duration);
                 PivotLeft.transform.localEulerAngles = new Vector3(0, 0, 90 * elapsed / duration);
+                for (var i = 0; i < mystifiedLights.Count; i++)
+                    mystifiedLights[i].range = Mathf.Lerp(0, mystifiedLightRanges[i], elapsed / duration);
             }
             mystifiedModule.transform.localScale = mystifyScale;
+            for (var i = 0; i < mystifiedLights.Count; i++)
+                mystifiedLights[i].range = mystifiedLightRanges[i];
             Destroy(Cover);
+            mystifiedLights = null;
+            mystifiedLightRanges = null;
+            keyModules = null;
         }
         animating = false;
         StopAllCoroutines();
