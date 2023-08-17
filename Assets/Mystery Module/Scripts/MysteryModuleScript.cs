@@ -333,7 +333,7 @@ public class MysteryModuleScript : MonoBehaviour
     {
         strikeActive = true;
         setScreen("Strike!", 255, 0, 0);
-        Debug.LogFormat(@"[Mystery Module #{0}] You tried to go to the next module without solving the current one - Strike!", moduleId);
+        Debug.LogFormat(@"[Mystery Module #{0}] You tried to go to the next module without solving {1} first - Strike!", moduleId, keyModules[0].ModuleDisplayName);
         Module.HandleStrike();
         yield return new WaitForSeconds(2f);
         SetKey();
@@ -358,7 +358,12 @@ public class MysteryModuleScript : MonoBehaviour
         {
             while (keyModules.Count > 0)
             {
+                // Wait for the required module to get solved
                 while (!Bomb.GetSolvedModuleIDs().Contains(keyModules[0].ModuleType))
+                    yield return true;
+
+                // The checkSolves coroutine only checks every 0.1 seconds, so it might not have gotten to it yet
+                while (!nextStage)
                     yield return true;
 
                 NextModule.OnInteract();
